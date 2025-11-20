@@ -81,6 +81,30 @@ Optional:
 * `--key`: key for proprietary models
 * `--debug`: whether to turn on the debug mode and load only a few documents
 
+## ☁️ Upload cache to Google Drive
+You can mirror the local `cache/` directory to a Google Drive folder using a service account:
+
+1. Enable Google Drive API in your GCP project and create a Service Account with a JSON key.
+2. Share the destination Drive folder with the Service Account email so it has access.
+3. Set your credentials path:
+   ```bash
+   export GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to/service-account.json
+   ```
+4. Install dependencies (if not already):
+   ```bash
+   pip install -r requirements.txt
+   ```
+5. Run the uploader:
+   ```bash
+   python scripts/upload_cache_to_gdrive.py --drive-folder-id <DRIVE_FOLDER_ID>
+   ```
+   - `--cache-dir` (optional): path to a different cache directory (defaults to `./cache`).
+   - `--force` (optional): re-upload files even if checksums match.
+
+Notes:
+- The `<DRIVE_FOLDER_ID>` is the ID from the Drive folder URL.
+- The script preserves the directory structure under the specified Drive folder and skips unchanged files by default.
+
 ### 🔍 Add custom model?
 It is very easy to add evaluate custom models on BRIGHT. Just implement the following function in `retrievers.py` and add it to the mapping `RETRIEVAL_FUNCS`:
 ```python

@@ -1,0 +1,454 @@
+{
+  "mode": "all",
+  "k": 25,
+  "files": 63,
+  "results": [
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/biology_azure_openai_long_False/score.json",
+      "num_evaluated_queries": 103,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6796116504854367,
+      "task": "biology"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/biology_bge-reasoner_long_False/score.json",
+      "num_evaluated_queries": 103,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.483495145631068,
+      "task": "biology"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/biology_bm25_long_False/score.json",
+      "num_evaluated_queries": 103,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6339805825242717,
+      "task": "biology"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/biology_diver-retriever_long_False/score.json",
+      "num_evaluated_queries": 103,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.8859223300970872,
+      "task": "biology"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/biology_grit_long_False/score.json",
+      "num_evaluated_queries": 103,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6990291262135923,
+      "task": "biology"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/biology_inst-xl_long_False/score.json",
+      "num_evaluated_queries": 103,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6936893203883493,
+      "task": "biology"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/biology_qwen2_long_False/score.json",
+      "num_evaluated_queries": 103,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.8067961165048539,
+      "task": "biology"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/biology_qwen3-embed_long_False/score.json",
+      "num_evaluated_queries": 103,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.5946601941747572,
+      "task": "biology"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/biology_reasonir_long_False/score.json",
+      "num_evaluated_queries": 103,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6233009708737867,
+      "task": "biology"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/earth_science_azure_openai_long_False/score.json",
+      "num_evaluated_queries": 115,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.7578260869565218,
+      "task": "earth_science"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/earth_science_bge-reasoner_long_False/score.json",
+      "num_evaluated_queries": 115,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.5991304347826085,
+      "task": "earth_science"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/earth_science_bm25_long_False/score.json",
+      "num_evaluated_queries": 115,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.7047826086956522,
+      "task": "earth_science"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/earth_science_diver-retriever_long_False/score.json",
+      "num_evaluated_queries": 115,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.9178260869565218,
+      "task": "earth_science"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/earth_science_grit_long_False/score.json",
+      "num_evaluated_queries": 115,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.7647826086956522,
+      "task": "earth_science"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/earth_science_inst-xl_long_False/score.json",
+      "num_evaluated_queries": 115,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.8030434782608695,
+      "task": "earth_science"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/earth_science_qwen2_long_False/score.json",
+      "num_evaluated_queries": 115,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.7982608695652174,
+      "task": "earth_science"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/earth_science_qwen3-embed_long_False/score.json",
+      "num_evaluated_queries": 115,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.7465217391304348,
+      "task": "earth_science"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/earth_science_reasonir_long_False/score.json",
+      "num_evaluated_queries": 115,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.7143478260869565,
+      "task": "earth_science"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/economics_azure_openai_long_False/score.json",
+      "num_evaluated_queries": 99,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6353535353535354,
+      "task": "economics"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/economics_bge-reasoner_long_False/score.json",
+      "num_evaluated_queries": 99,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.5565656565656565,
+      "task": "economics"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/economics_bm25_long_False/score.json",
+      "num_evaluated_queries": 99,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6353535353535353,
+      "task": "economics"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/economics_diver-retriever_long_False/score.json",
+      "num_evaluated_queries": 99,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.7752525252525253,
+      "task": "economics"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/economics_grit_long_False/score.json",
+      "num_evaluated_queries": 99,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6136363636363635,
+      "task": "economics"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/economics_inst-xl_long_False/score.json",
+      "num_evaluated_queries": 99,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6540404040404041,
+      "task": "economics"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/economics_qwen2_long_False/score.json",
+      "num_evaluated_queries": 99,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6373737373737374,
+      "task": "economics"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/economics_qwen3-embed_long_False/score.json",
+      "num_evaluated_queries": 99,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6111111111111112,
+      "task": "economics"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/economics_reasonir_long_False/score.json",
+      "num_evaluated_queries": 99,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.5616161616161617,
+      "task": "economics"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/psychology_azure_openai_long_False/score.json",
+      "num_evaluated_queries": 100,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.7020000000000001,
+      "task": "psychology"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/psychology_bge-reasoner_long_False/score.json",
+      "num_evaluated_queries": 100,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.5475,
+      "task": "psychology"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/psychology_bm25_long_False/score.json",
+      "num_evaluated_queries": 100,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.5070000000000003,
+      "task": "psychology"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/psychology_diver-retriever_long_False/score.json",
+      "num_evaluated_queries": 100,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.8270000000000002,
+      "task": "psychology"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/psychology_grit_long_False/score.json",
+      "num_evaluated_queries": 100,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6060000000000002,
+      "task": "psychology"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/psychology_inst-xl_long_False/score.json",
+      "num_evaluated_queries": 100,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.7205000000000001,
+      "task": "psychology"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/psychology_qwen2_long_False/score.json",
+      "num_evaluated_queries": 100,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6629999999999999,
+      "task": "psychology"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/psychology_qwen3-embed_long_False/score.json",
+      "num_evaluated_queries": 100,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6435000000000001,
+      "task": "psychology"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/psychology_reasonir_long_False/score.json",
+      "num_evaluated_queries": 100,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.5419999999999999,
+      "task": "psychology"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/robotics_azure_openai_long_False/score.json",
+      "num_evaluated_queries": 101,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6178217821782175,
+      "task": "robotics"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/robotics_bge-reasoner_long_False/score.json",
+      "num_evaluated_queries": 101,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.5767326732673265,
+      "task": "robotics"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/robotics_bm25_long_False/score.json",
+      "num_evaluated_queries": 101,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6316831683168317,
+      "task": "robotics"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/robotics_diver-retriever_long_False/score.json",
+      "num_evaluated_queries": 101,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.7410891089108907,
+      "task": "robotics"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/robotics_grit_long_False/score.json",
+      "num_evaluated_queries": 101,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6123762376237621,
+      "task": "robotics"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/robotics_inst-xl_long_False/score.json",
+      "num_evaluated_queries": 101,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6896039603960396,
+      "task": "robotics"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/robotics_qwen2_long_False/score.json",
+      "num_evaluated_queries": 101,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6039603960396039,
+      "task": "robotics"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/robotics_qwen3-embed_long_False/score.json",
+      "num_evaluated_queries": 101,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6777227722772274,
+      "task": "robotics"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/robotics_reasonir_long_False/score.json",
+      "num_evaluated_queries": 101,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6341584158415842,
+      "task": "robotics"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/stackoverflow_azure_openai_long_False/score.json",
+      "num_evaluated_queries": 115,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6726086956521741,
+      "task": "stackoverflow"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/stackoverflow_bge-reasoner_long_False/score.json",
+      "num_evaluated_queries": 115,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.7543478260869566,
+      "task": "stackoverflow"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/stackoverflow_bm25_long_False/score.json",
+      "num_evaluated_queries": 115,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6247826086956522,
+      "task": "stackoverflow"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/stackoverflow_diver-retriever_long_False/score.json",
+      "num_evaluated_queries": 115,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.8460869565217392,
+      "task": "stackoverflow"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/stackoverflow_grit_long_False/score.json",
+      "num_evaluated_queries": 115,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.606521739130435,
+      "task": "stackoverflow"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/stackoverflow_inst-xl_long_False/score.json",
+      "num_evaluated_queries": 115,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6791304347826085,
+      "task": "stackoverflow"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/stackoverflow_qwen2_long_False/score.json",
+      "num_evaluated_queries": 115,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6243478260869565,
+      "task": "stackoverflow"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/stackoverflow_qwen3-embed_long_False/score.json",
+      "num_evaluated_queries": 115,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6643478260869567,
+      "task": "stackoverflow"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/stackoverflow_reasonir_long_False/score.json",
+      "num_evaluated_queries": 115,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.693913043478261,
+      "task": "stackoverflow"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/sustainable_living_azure_openai_long_False/score.json",
+      "num_evaluated_queries": 106,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6636792452830189,
+      "task": "sustainable_living"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/sustainable_living_bge-reasoner_long_False/score.json",
+      "num_evaluated_queries": 106,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.4750000000000001,
+      "task": "sustainable_living"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/sustainable_living_bm25_long_False/score.json",
+      "num_evaluated_queries": 106,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6580188679245281,
+      "task": "sustainable_living"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/sustainable_living_diver-retriever_long_False/score.json",
+      "num_evaluated_queries": 106,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.7976415094339623,
+      "task": "sustainable_living"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/sustainable_living_grit_long_False/score.json",
+      "num_evaluated_queries": 106,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6037735849056604,
+      "task": "sustainable_living"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/sustainable_living_inst-xl_long_False/score.json",
+      "num_evaluated_queries": 106,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6900943396226414,
+      "task": "sustainable_living"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/sustainable_living_qwen2_long_False/score.json",
+      "num_evaluated_queries": 106,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.5952830188679245,
+      "task": "sustainable_living"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/sustainable_living_qwen3-embed_long_False/score.json",
+      "num_evaluated_queries": 106,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.6066037735849056,
+      "task": "sustainable_living"
+    },
+    {
+      "file": "/gpfs/radev/home/jw3278/project/BRIGHT/outputs/sustainable_living_reasonir_long_False/score.json",
+      "num_evaluated_queries": 106,
+      "k": 25,
+      "avg_weighted_aspect_recall": 0.5905660377358493,
+      "task": "sustainable_living"
+    }
+  ],
+  "aggregate": {
+    "mode": "all",
+    "files": 63,
+    "avg_weighted_aspect_recall": 0.6663127945247364,
+    "k": 25
+  }
+}

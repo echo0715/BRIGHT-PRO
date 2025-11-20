@@ -1,1 +1,8 @@
 .idea/
+cache/
+extracted_content/
+filtered_extraction_results_bright_combined/
+filtered_extraction_results_combined/
+filtered_extraction_results_o4-mini/
+outputs/
+outputs_old/

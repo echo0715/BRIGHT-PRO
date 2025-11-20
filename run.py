@@ -1,11 +1,20 @@
 import os
+import multiprocessing as mp
 import argparse
 import json
 from tqdm import tqdm
 from retrievers import RETRIEVAL_FUNCS,calculate_retrieval_metrics
 from datasets import load_dataset
+from datasets import load_from_disk
+from datasets import DatasetDict
+
 
 if __name__=='__main__':
+    # Ensure CUDA is not initialized in forked subprocesses
+    try:
+        mp.set_start_method("spawn", force=True)
+    except RuntimeError:
+        pass
     parser = argparse.ArgumentParser()
     parser.add_argument('--task', type=str, required=True,
                         choices=['biology','earth_science','economics','pony','psychology','robotics',
@@ -13,7 +22,7 @@ if __name__=='__main__':
                                  'theoremqa_questions'])
     parser.add_argument('--model', type=str, required=True,
                         choices=['bm25','cohere','e5','google','grit','inst-l','inst-xl',
-                                 'openai','qwen','qwen2','sbert','sf','voyage','bge'])
+                                 'openai','azure_openai','qwen','qwen2','sbert','sf','voyage','bge','reasonir','diver-retriever','bge-reasoner','qwen3-embed'])
     parser.add_argument('--long_context', action='store_true')
     parser.add_argument('--query_max_length', type=int, default=-1)
     parser.add_argument('--doc_max_length', type=int, default=-1)
@@ -27,6 +36,7 @@ if __name__=='__main__':
     parser.add_argument('--reasoning', type=str, default=None)
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--ignore_cache', action='store_true')
+    parser.add_argument('--model_cache_folder', type=str, default=None)
     args = parser.parse_args()
     args.output_dir = os.path.join(args.output_dir,f"{args.task}_{args.model}_long_{args.long_context}")
     if not os.path.isdir(args.output_dir):
@@ -39,16 +49,27 @@ if __name__=='__main__':
     elif args.reasoning is not None:
         examples = load_dataset('xlangai/bright', f"{args.reasoning}_reason", cache_dir=args.cache_dir)[args.task]
     else:
-        examples = load_dataset('xlangai/bright', 'examples',cache_dir=args.cache_dir)[args.task]
+        examples = load_dataset('ya-ir/BRIGHT-PRO-WITH-ASPECT', 'examples',cache_dir=args.cache_dir)[args.task]
+        # Load examples from the modified local dataset
+        # examples = load_from_disk(f'bright_pro/examples/{args.task}')
+        # examples = modified_dataset['examples'][args.task]
+        
     if args.long_context:
         doc_pairs = load_dataset('xlangai/bright', 'long_documents',cache_dir=args.cache_dir)[args.task]
     else:
-        doc_pairs = load_dataset('xlangai/bright', 'documents',cache_dir=args.cache_dir)[args.task]
+        # doc_pairs = load_dataset('xlangai/bright', 'documents',cache_dir=args.cache_dir)[args.task]
+        doc_pairs = load_dataset('ya-ir/BRIGHT-PRO-WITH-ASPECT', 'documents',cache_dir=args.cache_dir)[args.task]
+        # Load documents from the modified local dataset
+        # Reuse the already loaded dataset to avoid loading twice
+        # doc_pairs = load_from_disk(f'bright_pro/documents/{args.task}')
     doc_ids = []
     documents = []
+
     for dp in doc_pairs:
         doc_ids.append(dp['id'])
         documents.append(dp['content'])
+    
+
 
     if not os.path.isfile(score_file_path):
         with open(os.path.join(args.config_dir,args.model,f"{args.task}.json")) as f:
@@ -94,6 +115,8 @@ if __name__=='__main__':
             kwargs.update({'key': args.key})
         if args.ignore_cache:
             kwargs.update({'ignore_cache': args.ignore_cache})
+        if args.model_cache_folder is not None:
+            kwargs.update({'model_cache_folder': args.model_cache_folder})
         scores = RETRIEVAL_FUNCS[args.model](
             queries=queries, query_ids=query_ids, documents=documents, excluded_ids=excluded_ids,
             instructions=config['instructions_long'] if args.long_context else config['instructions'],

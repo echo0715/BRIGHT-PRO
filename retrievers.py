@@ -1,3 +1,4 @@
+import os
 import os.path
 import time
 import torch
@@ -5,6 +6,7 @@ import json
 import cohere
 import numpy as np
 import vertexai
+from openai import AzureOpenAI
 import pytrec_eval
 import tiktoken
 import voyageai
@@ -12,13 +14,18 @@ from tqdm import tqdm,trange
 import torch.nn.functional as F
 from gritlm import GritLM
 from openai import OpenAI
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoTokenizer, AutoModel, AutoModelForSequenceClassification, AutoModelForCausalLM 
 from InstructorEmbedding import INSTRUCTOR
 
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 # from vertexai.language_models import TextEmbeddingInput, TextEmbeddingModel
 from torchmetrics.functional.pairwise import pairwise_cosine_similarity
+
+from peft import PeftModel, PeftConfig
+import pandas as pd
+from collections import defaultdict
+# Delay importing vLLM until after we set multiprocessing/env vars in Qwen3EmbeddingModel
 
 def cut_text(text,tokenizer,threshold):
     text_ids = tokenizer(text)['input_ids']
@@ -114,12 +121,12 @@ def get_scores(query_ids,doc_ids,scores,excluded_ids):
     emb_scores = {}
     for query_id,doc_scores in zip(query_ids,scores):
         cur_scores = {}
-        assert len(excluded_ids[query_id])==0 or (isinstance(excluded_ids[query_id][0], str) and isinstance(excluded_ids[query_id], list))
+        # assert len(excluded_ids[query_id])==0 or (isinstance(excluded_ids[query_id][0], str) and isinstance(excluded_ids[query_id], list))
         for did,s in zip(doc_ids,doc_scores):
             cur_scores[str(did)] = s
-        for did in set(excluded_ids[str(query_id)]):
-            if did!="N/A":
-                cur_scores.pop(did)
+        # for did in set(excluded_ids[str(query_id)]):
+        #     if did!="N/A":
+        #         cur_scores.pop(did)
         cur_scores = sorted(cur_scores.items(),key=lambda x:x[1],reverse=True)[:1000]
         emb_scores[str(query_id)] = {}
         for pair in cur_scores:
@@ -129,21 +136,22 @@ def get_scores(query_ids,doc_ids,scores,excluded_ids):
 
 @torch.no_grad()
 def retrieval_sf_qwen_e5(queries,query_ids,documents,doc_ids,task,model_id,instructions,cache_dir,excluded_ids,long_context,**kwargs):
+    model_cache_folder = kwargs.get('model_cache_folder', None)
     if model_id=='sf':
-        tokenizer = AutoTokenizer.from_pretrained('salesforce/sfr-embedding-mistral')
-        model = AutoModel.from_pretrained('salesforce/sfr-embedding-mistral',device_map="auto").eval()
+        tokenizer = AutoTokenizer.from_pretrained('salesforce/sfr-embedding-mistral', cache_dir=model_cache_folder)
+        model = AutoModel.from_pretrained('salesforce/sfr-embedding-mistral', device_map="auto", cache_dir=model_cache_folder).eval()
         max_length = kwargs.get('doc_max_length',4096)
     elif model_id=='qwen':
-        tokenizer = AutoTokenizer.from_pretrained('alibaba-nlp/gte-qwen1.5-7b-instruct', trust_remote_code=True)
-        model = AutoModel.from_pretrained('alibaba-nlp/gte-qwen1.5-7b-instruct', device_map="auto", trust_remote_code=True).eval()
+        tokenizer = AutoTokenizer.from_pretrained('alibaba-nlp/gte-qwen1.5-7b-instruct', trust_remote_code=True, cache_dir=model_cache_folder)
+        model = AutoModel.from_pretrained('alibaba-nlp/gte-qwen1.5-7b-instruct', device_map="auto", trust_remote_code=True, cache_dir=model_cache_folder).eval()
         max_length = kwargs.get('doc_max_length',8192)
     elif model_id=='qwen2':
-        tokenizer = AutoTokenizer.from_pretrained('alibaba-nlp/gte-qwen2-7b-instruct', trust_remote_code=True)
-        model = AutoModel.from_pretrained('alibaba-nlp/gte-qwen2-7b-instruct', device_map="auto", trust_remote_code=True).eval()
+        tokenizer = AutoTokenizer.from_pretrained('alibaba-nlp/gte-qwen2-7b-instruct', trust_remote_code=True, cache_dir=model_cache_folder)
+        model = AutoModel.from_pretrained('alibaba-nlp/gte-qwen2-7b-instruct', device_map="auto", trust_remote_code=True, cache_dir=model_cache_folder).eval()
         max_length = kwargs.get('doc_max_length',8192)
     elif model_id=='e5':
-        tokenizer = AutoTokenizer.from_pretrained('intfloat/e5-mistral-7b-instruct')
-        model = AutoModel.from_pretrained('intfloat/e5-mistral-7b-instruct', device_map="auto").eval()
+        tokenizer = AutoTokenizer.from_pretrained('intfloat/e5-mistral-7b-instruct', cache_dir=model_cache_folder)
+        model = AutoModel.from_pretrained('intfloat/e5-mistral-7b-instruct', device_map="auto", cache_dir=model_cache_folder).eval()
         max_length = kwargs.get('doc_max_length',4096)
     else:
         raise ValueError(f"The model {model_id} is not supported")
@@ -215,9 +223,7 @@ def retrieval_bm25(queries,query_ids,documents,doc_ids,excluded_ids,long_context
         all_scores[str(query_id)] = {}
         for did, s in zip(doc_ids, similarities):
             all_scores[str(query_id)][did] = s
-        for did in set(excluded_ids[str(query_id)]):
-            if did!="N/A":
-                all_scores[str(query_id)].pop(did)
+
         cur_scores = sorted(all_scores[str(query_id)].items(),key=lambda x:x[1],reverse=True)[:1000]
         all_scores[str(query_id)] = {}
         for pair in cur_scores:
@@ -226,11 +232,12 @@ def retrieval_bm25(queries,query_ids,documents,doc_ids,excluded_ids,long_context
 
 @torch.no_grad()
 def retrieval_sbert_bge(queries,query_ids,documents,doc_ids,task,instructions,model_id,cache_dir,excluded_ids,long_context,**kwargs):
+    model_cache_folder = kwargs.get('model_cache_folder', None)
     if model_id=='bge':
-        model = SentenceTransformer('BAAI/bge-large-en-v1.5')
+        model = SentenceTransformer('BAAI/bge-large-en-v1.5', cache_folder=model_cache_folder)
         queries = add_instruct_concatenate(texts=queries,task=task,instruction=instructions['query'])
     elif model_id=='sbert':
-        model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
+        model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2', cache_folder=model_cache_folder)
     else:
         raise ValueError(f"The model {model_id} is not supported")
     batch_size = kwargs.get('batch_size',128)
@@ -250,10 +257,11 @@ def retrieval_sbert_bge(queries,query_ids,documents,doc_ids,task,instructions,mo
 
 @torch.no_grad()
 def retrieval_instructor(queries,query_ids,documents,doc_ids,task,instructions,model_id,cache_dir,excluded_ids,long_context,**kwargs):
+    model_cache_folder = kwargs.get('model_cache_folder', None)
     if model_id=='inst-l':
-        model = SentenceTransformer('hkunlp/instructor-large')
+        model = SentenceTransformer('hkunlp/instructor-large', cache_folder=model_cache_folder)
     elif model_id=='inst-xl':
-        model = SentenceTransformer('hkunlp/instructor-xl')
+        model = SentenceTransformer('hkunlp/instructor-xl', cache_folder=model_cache_folder)
     else:
         raise ValueError(f"The model {model_id} is not supported")
     model.set_pooling_include_prompt(False)
@@ -279,12 +287,18 @@ def retrieval_instructor(queries,query_ids,documents,doc_ids,task,instructions,m
 
 @torch.no_grad()
 def retrieval_grit(queries,query_ids,documents,doc_ids,task,instructions,model_id,cache_dir,excluded_ids,long_context,**kwargs):
+    model_cache_folder = kwargs.get('model_cache_folder', None)
     customized_checkpoint = kwargs.get('checkpoint',None)
     if customized_checkpoint is None:
         customized_checkpoint = 'GritLM/GritLM-7B'
     else:
         print('use',customized_checkpoint)
-    model = GritLM(customized_checkpoint, torch_dtype="auto", mode="embedding")
+    # Use memory-efficient loading with device_map and low_cpu_mem_usage
+    # model = GritLM(customized_checkpoint, torch_dtype="auto", mode="embedding")
+    if model_cache_folder is not None:
+        model = GritLM(customized_checkpoint, torch_dtype="auto", mode="embedding", device_map="auto", low_cpu_mem_usage=True, cache_dir=model_cache_folder)
+    else:
+        model = GritLM(customized_checkpoint, torch_dtype="auto", mode="embedding", device_map="auto", low_cpu_mem_usage=True)
     query_instruction = instructions['query'].format(task=task)
     doc_instruction = instructions['document']
     query_max_length = kwargs.get('query_max_length',256)
@@ -296,6 +310,11 @@ def retrieval_grit(queries,query_ids,documents,doc_ids,task,instructions,model_i
         os.makedirs(os.path.join(cache_dir, 'doc_emb', model_id, task, f"long_{long_context}_{batch_size}"))
     cur_cache_file = os.path.join(cache_dir, 'doc_emb', model_id, task, f"long_{long_context}_{batch_size}", f'0.npy')
     ignore_cache = kwargs.pop('ignore_cache',False)
+    
+    # Clear GPU cache before encoding
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+    
     if os.path.isfile(cur_cache_file):
         doc_emb = np.load(cur_cache_file, allow_pickle=True)
     elif ignore_cache:
@@ -303,6 +322,11 @@ def retrieval_grit(queries,query_ids,documents,doc_ids,task,instructions,model_i
     else:
         doc_emb = model.encode(documents, instruction=doc_instruction, batch_size=1, max_length=doc_max_length)
         np.save(cur_cache_file, doc_emb)
+    
+    # Clear GPU cache between document and query encoding
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        
     query_emb = model.encode(queries, instruction=query_instruction, batch_size=1, max_length=query_max_length)
     scores = pairwise_cosine_similarity(torch.from_numpy(query_emb), torch.from_numpy(doc_emb))
     scores = scores.tolist()
@@ -346,6 +370,82 @@ def retrieval_openai(queries,query_ids,documents,doc_ids,task,model_id,cache_dir
     scores = scores.tolist()
     return get_scores(query_ids=query_ids,doc_ids=doc_ids,scores=scores,excluded_ids=excluded_ids)
 
+
+def get_embedding_azure_openai(texts, client, tokenizer, deployment="text-embedding-3-large"):
+    texts = [json.dumps(text.replace("\n", " ")) for text in texts]
+    success = False
+    threshold = 6000
+    count = 0
+    cur_emb = None
+    exec_count = 0
+    while not success:
+        exec_count += 1
+        if exec_count > 5:
+            print('execute too many times (azure)')
+            exit(0)
+        try:
+            emb_obj = client.embeddings.create(input=texts, model=deployment).data
+            cur_emb = [e.embedding for e in emb_obj]
+            success = True
+        except Exception as e:
+            print(e)
+            count += 1
+            threshold -= 500
+            if count > 4:
+                print('azure openai cut', count)
+                exit(0)
+            new_texts = []
+            for t in texts:
+                new_texts.append(cut_text_openai(text=t, tokenizer=tokenizer, threshold=threshold))
+            texts = new_texts
+    if cur_emb is None:
+        raise ValueError("Fail to embed, azure openai")
+    return cur_emb
+
+
+def retrieval_azure(queries,query_ids,documents,doc_ids,task,model_id,cache_dir,excluded_ids,long_context,**kwargs):
+    tokenizer = tiktoken.get_encoding("cl100k_base")
+    new_queries = []
+    for q in queries:
+        new_queries.append(cut_text_openai(text=q, tokenizer=tokenizer))
+    queries = new_queries
+    new_documents = []
+    for d in documents:
+        new_documents.append(cut_text_openai(text=d, tokenizer=tokenizer))
+    documents = new_documents
+
+    endpoint = kwargs.get('azure_endpoint') or os.environ.get('AZURE_OPENAI_ENDPOINT')
+    api_key = kwargs.get('key') or os.environ.get('AZURE_OPENAI_API_KEY')
+    api_version = kwargs.get('azure_api_version', '2024-12-01-preview')
+    deployment = kwargs.get('azure_deployment', 'text-embedding-3-large')
+    if not endpoint or not api_key:
+        raise ValueError("Azure endpoint or API key not provided. Set 'azure_endpoint' and 'key' in kwargs or environment variables AZURE_OPENAI_ENDPOINT/AZURE_OPENAI_API_KEY.")
+
+    client = AzureOpenAI(api_version=api_version, azure_endpoint=endpoint, api_key=api_key)
+
+    doc_emb = []
+    batch_size = kwargs.get('batch_size', 32)
+    if not os.path.isdir(os.path.join(cache_dir, 'doc_emb', model_id, task, f"long_{long_context}_{batch_size}")):
+        os.makedirs(os.path.join(cache_dir, 'doc_emb', model_id, task, f"long_{long_context}_{batch_size}"))
+    for idx in trange(0, len(documents), batch_size):
+        cur_cache_file = os.path.join(cache_dir, 'doc_emb', model_id, task, f"long_{long_context}_{batch_size}", f'{idx}.json')
+        if os.path.isfile(cur_cache_file):
+            with open(cur_cache_file) as f:
+                cur_emb = json.load(f)
+        else:
+            cur_emb = get_embedding_azure_openai(texts=documents[idx:idx + batch_size], client=client, tokenizer=tokenizer, deployment=deployment)
+            with open(cur_cache_file, 'w') as f:
+                json.dump(cur_emb, f, indent=2)
+        doc_emb += cur_emb
+
+    query_emb = []
+    for idx in trange(0, len(queries), batch_size):
+        cur_emb = get_embedding_azure_openai(texts=queries[idx:idx + batch_size], client=client, tokenizer=tokenizer, deployment=deployment)
+        query_emb += cur_emb
+
+    scores = pairwise_cosine_similarity(torch.tensor(query_emb), torch.tensor(doc_emb))
+    scores = scores.tolist()
+    return get_scores(query_ids=query_ids,doc_ids=doc_ids,scores=scores,excluded_ids=excluded_ids)
 
 def retrieval_cohere(queries,query_ids,documents,doc_ids,task,model_id,cache_dir,excluded_ids,long_context,**kwargs):
     query_emb = []
@@ -402,7 +502,8 @@ def retrieval_cohere(queries,query_ids,documents,doc_ids,task,model_id,cache_dir
 
 
 def retrieval_voyage(queries,query_ids,documents,doc_ids,task,model_id,cache_dir,excluded_ids,long_context,**kwargs):
-    tokenizer = AutoTokenizer.from_pretrained('voyageai/voyage')
+    model_cache_folder = kwargs.get('model_cache_folder', None)
+    tokenizer = AutoTokenizer.from_pretrained('voyageai/voyage', cache_dir=model_cache_folder)
     new_queries = []
     for q in queries:
         new_queries.append(cut_text(text=q,tokenizer=tokenizer,threshold=16000))
@@ -524,6 +625,281 @@ def retrieval_google(queries,query_ids,documents,doc_ids,task,model_id,cache_dir
     return get_scores(query_ids=query_ids,doc_ids=doc_ids,scores=scores,excluded_ids=excluded_ids)
 
 
+@torch.no_grad()
+def retrieval_reasonir(queries,query_ids,documents,doc_ids,task,instructions,model_id,cache_dir,excluded_ids,long_context,**kwargs):
+    # NOTE: HF version does not come with pooling function, need to add it manually.
+    model_cache_folder = kwargs.get('model_cache_folder', None)
+    customized_checkpoint = kwargs.get('checkpoint',None)
+    if customized_checkpoint is None:
+        customized_checkpoint = 'reasonir/ReasonIR-8B'
+    else:
+        print('use',customized_checkpoint)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    tokenizer = AutoTokenizer.from_pretrained(customized_checkpoint, torch_dtype="auto", trust_remote_code=True, cache_dir=model_cache_folder)
+    model = AutoModel.from_pretrained(customized_checkpoint, torch_dtype="auto", trust_remote_code=True, cache_dir=model_cache_folder)
+    model.eval()
+    model.to(device)
+    query_instruction = instructions['query'].format(task=task)
+    doc_instruction = instructions['document']
+    query_max_length = kwargs.get('query_max_length',32768)
+    doc_max_length = kwargs.get('doc_max_length',32768)
+    print("doc max length:",doc_max_length)
+    print("query max length:", query_max_length)
+    batch_size = kwargs.get('batch_size',1)
+
+    if not os.path.isdir(os.path.join(cache_dir, 'doc_emb', model_id, task, f"long_{long_context}_{batch_size}")):
+        os.makedirs(os.path.join(cache_dir, 'doc_emb', model_id, task, f"long_{long_context}_{batch_size}"))
+    if not os.path.isdir(os.path.join(cache_dir, 'query_emb', model_id, task, f"long_{long_context}_{batch_size}")):
+        os.makedirs(os.path.join(cache_dir, 'query_emb', model_id, task, f"long_{long_context}_{batch_size}"))
+    cur_cache_file = os.path.join(cache_dir, 'doc_emb', model_id, task, f"long_{long_context}_{batch_size}", f'0.npy')
+    ignore_cache = kwargs.pop('ignore_cache',False)
+    skip_doc_emb = kwargs.pop('skip_doc_emb',False)
+    if not skip_doc_emb:
+        if os.path.isfile(cur_cache_file):
+            doc_emb = np.load(cur_cache_file, allow_pickle=True)
+        elif ignore_cache:
+            doc_emb = model.encode(documents, instruction=doc_instruction, batch_size=batch_size, max_length=doc_max_length)
+        else:
+            doc_emb = model.encode(documents, instruction=doc_instruction, batch_size=batch_size, max_length=doc_max_length)
+            np.save(cur_cache_file, doc_emb)
+    cur_cache_file = os.path.join(cache_dir, 'query_emb', model_id, task, f"long_{long_context}_{batch_size}", f'0.npy')
+    if os.path.isfile(cur_cache_file):
+        query_emb = np.load(cur_cache_file, allow_pickle=True)
+    elif ignore_cache:
+        query_emb = model.encode(queries, instruction=query_instruction, batch_size=batch_size, max_length=query_max_length)
+    else:
+        query_emb = model.encode(queries, instruction=query_instruction, batch_size=batch_size, max_length=query_max_length)
+        np.save(cur_cache_file, query_emb)
+    if skip_doc_emb:
+        exit()
+    scores = pairwise_cosine_similarity(torch.from_numpy(query_emb), torch.from_numpy(doc_emb))
+    scores = scores.tolist()
+    assert len(scores) == len(query_ids), f"{len(scores)}, {len(query_ids)}"
+    assert len(scores[0]) == len(documents), f"{len(scores[0])}, {len(documents)}"
+    return get_scores(query_ids=query_ids,doc_ids=doc_ids,scores=scores,excluded_ids=excluded_ids)
+
+
+class Qwen3EmbeddingModel:
+    def __init__(self, model_path, max_length=16384, device="auto", cache_dir=None):
+        # Ensure spawn start method and vLLM uses spawn to avoid CUDA init in forked subprocess
+        import multiprocessing as mp
+        try:
+            mp.set_start_method("spawn", force=True)
+        except RuntimeError:
+            pass
+        os.environ.setdefault("VLLM_WORKER_MULTIPROC_METHOD", "spawn")
+        # Disable FlashAttention v2 path on pre-Ampere or fork-sensitive setups
+        os.environ.setdefault("VLLM_USE_FA2", "0")
+
+        # Import vLLM only after the above to prevent early CUDA initialization
+        from vllm import LLM
+        from vllm.transformers_utils.tokenizer import get_tokenizer as get_vllm_tokenizer
+
+        # self.model = LLM(model=model_path, task="embed", gpu_memory_utilization=0.9, tensor_parallel_size=torch.cuda.device_count(), download_dir=cache_dir)
+        self.model = LLM(model=model_path, task="embed", gpu_memory_utilization=0.9, tensor_parallel_size=1, download_dir=cache_dir)
+        self.task = 'Given a web search query, retrieve relevant passages that answer the query'
+        self.max_length = max_length 
+        self.tokenizer = get_vllm_tokenizer(model_path, trust_remote_code=False)
+
+    def truncate_text(self, text):
+        text_ids = self.tokenizer.encode(text, add_special_tokens=False)
+        if len(text_ids) > self.max_length:
+            text_ids = text_ids[:self.max_length]
+            text = self.tokenizer.decode(text_ids)
+        return text
+
+    def embed_query(self, query):
+        outputs = self.model.embed(query)
+        return outputs[0].outputs.embedding
+
+    def embed_queries(self, query):
+        input_queries = ['Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:{}'.format(x) for x in query]
+        input_queries = [self.truncate_text(x) for x in query]
+        outputs = self.model.embed(input_queries)
+        return [x.outputs.embedding for x in outputs]
+
+    def embed_doc(self, doc):
+        outputs = self.model.embed("Represent this text:{}".format(doc))
+        return outputs[0].outputs.embedding
+
+    def embed_docs(self, docs):
+        docs = ["Represent this text:{}".format(doc) for doc in docs]
+        docs = [self.truncate_text(doc, ) for doc in docs]
+        outputs = self.model.embed(docs)
+        return [x.outputs.embedding for x in outputs]
+
+@torch.no_grad()
+def retrieval_qwen3_ft_diver(queries,query_ids,documents,doc_ids,task,model_id,instructions,cache_dir,excluded_ids,long_context,**kwargs):
+    model_cache_folder = kwargs.get('model_cache_folder', None)
+    cache_model_name = kwargs.get('model_name', 'diver')
+    batch_size = kwargs.get('encode_batch_size',1)
+    
+    model_path = 'AQ-MedAI/Diver-Retriever-4B'
+    model = Qwen3EmbeddingModel(model_path, max_length=32768, cache_dir=model_cache_folder)
+
+    # Check if documents are already encoded 
+    document_postfix = '_'+kwargs.get('document_postfix', '') if len(kwargs.get('document_postfix', '')) > 0 else ''
+    cache_doc_emb_dir = os.path.join(cache_dir, 'doc_emb'+document_postfix, cache_model_name, task, f"long_{long_context}")
+    os.makedirs(cache_doc_emb_dir, exist_ok=True)
+    cur_cache_file = os.path.join(cache_doc_emb_dir, f'0.npy')
+
+    if os.path.isfile(cur_cache_file):
+        doc_emb = np.load(cur_cache_file,allow_pickle=True)
+    else:
+        doc_emb = []
+        with torch.inference_mode():
+            doc_emb = model.embed_docs(documents)
+        torch.cuda.empty_cache()
+        
+        # Convert to numpy array and save
+        doc_emb = np.array(doc_emb)
+        np.save(cur_cache_file, doc_emb)
+    print("Shape of doc emb", doc_emb.shape)
+
+    query_emb = []
+    with torch.inference_mode():
+        query_emb = model.embed_queries(queries)
+    query_emb = np.array(query_emb)
+    print("Shape of query emb", query_emb.shape)
+
+    # Find cosine similarity between doc_emb and query_emb
+    scores = cosine_similarity(query_emb, doc_emb)
+    print("Scores shape", scores.shape)
+    scores = scores.tolist()
+
+    if len(kwargs.get('document_postfix', '')) > 0:  # rechunk setting
+        dedup_doc_ids = set(doc_ids)
+        dedup_scores = []  # shape:[len(scores), len(dedup_doc_ids)], save only the best score for each query-doc pair
+        for query_idx in range(len(query_emb)):
+            best_scores = {}  # for each query, save the best score for each doc_id
+            for idx, score in enumerate(scores[query_idx]):
+                doc_id = doc_ids[idx]
+                if doc_id not in best_scores or score > best_scores[doc_id]:
+                    best_scores[doc_id] = score
+            q_doc_scores = []
+            for doc_id in dedup_doc_ids:
+                q_doc_scores.append(best_scores.get(doc_id))
+            dedup_scores.append(q_doc_scores)
+
+        doc_ids, scores = dedup_doc_ids, dedup_scores
+        print("Dedup Scores shape:", len(scores[0]))
+    return get_scores(query_ids=query_ids,doc_ids=doc_ids,scores=scores,excluded_ids=excluded_ids)
+
+def retrieval_qwen3_ft_bge_reasoner(queries,query_ids,documents,doc_ids,task,model_id,instructions,cache_dir,excluded_ids,long_context,**kwargs):
+    model_cache_folder = kwargs.get('model_cache_folder', None)
+    cache_model_name = kwargs.get('model_name', 'bge-reasoner')
+    batch_size = kwargs.get('encode_batch_size',1)
+    
+    model_path = 'BAAI/bge-reasoner-embed-qwen3-8b-0923'
+    model = Qwen3EmbeddingModel(model_path, max_length=32768, cache_dir=model_cache_folder)
+
+    # Check if documents are already encoded 
+    document_postfix = '_'+kwargs.get('document_postfix', '') if len(kwargs.get('document_postfix', '')) > 0 else ''
+    cache_doc_emb_dir = os.path.join(cache_dir, 'doc_emb'+document_postfix, cache_model_name, task, f"long_{long_context}")
+    os.makedirs(cache_doc_emb_dir, exist_ok=True)
+    cur_cache_file = os.path.join(cache_doc_emb_dir, f'0.npy')
+
+    if os.path.isfile(cur_cache_file):
+        doc_emb = np.load(cur_cache_file,allow_pickle=True)
+    else:
+        doc_emb = []
+        with torch.inference_mode():
+            doc_emb = model.embed_docs(documents)
+        torch.cuda.empty_cache()
+        
+        # Convert to numpy array and save
+        doc_emb = np.array(doc_emb)
+        np.save(cur_cache_file, doc_emb)
+    print("Shape of doc emb", doc_emb.shape)
+
+    query_emb = []
+    with torch.inference_mode():
+        query_emb = model.embed_queries(queries)
+    query_emb = np.array(query_emb)
+    print("Shape of query emb", query_emb.shape)
+
+    # Find cosine similarity between doc_emb and query_emb
+    scores = cosine_similarity(query_emb, doc_emb)
+    print("Scores shape", scores.shape)
+    scores = scores.tolist()
+
+    if len(kwargs.get('document_postfix', '')) > 0:  # rechunk setting
+        dedup_doc_ids = set(doc_ids)
+        dedup_scores = []  # shape:[len(scores), len(dedup_doc_ids)], save only the best score for each query-doc pair
+        for query_idx in range(len(query_emb)):
+            best_scores = {}  # for each query, save the best score for each doc_id
+            for idx, score in enumerate(scores[query_idx]):
+                doc_id = doc_ids[idx]
+                if doc_id not in best_scores or score > best_scores[doc_id]:
+                    best_scores[doc_id] = score
+            q_doc_scores = []
+            for doc_id in dedup_doc_ids:
+                q_doc_scores.append(best_scores.get(doc_id))
+            dedup_scores.append(q_doc_scores)
+
+        doc_ids, scores = dedup_doc_ids, dedup_scores
+        print("Dedup Scores shape:", len(scores[0]))
+    return get_scores(query_ids=query_ids,doc_ids=doc_ids,scores=scores,excluded_ids=excluded_ids)
+
+
+@torch.no_grad()
+def retrieval_qwen3_embedding(queries,query_ids,documents,doc_ids,task,model_id,instructions,cache_dir,excluded_ids,long_context,**kwargs):
+    model_cache_folder = kwargs.get('model_cache_folder', None)
+    cache_model_name = kwargs.get('model_name', 'qwen3-embed')
+    batch_size = kwargs.get('encode_batch_size',1)
+    
+    model_path = 'Qwen/Qwen3-Embedding-8B'
+    model = Qwen3EmbeddingModel(model_path, max_length=32768, cache_dir=model_cache_folder)
+
+    # Check if documents are already encoded 
+    document_postfix = '_'+kwargs.get('document_postfix', '') if len(kwargs.get('document_postfix', '')) > 0 else ''
+    cache_doc_emb_dir = os.path.join(cache_dir, 'doc_emb'+document_postfix, cache_model_name, task, f"long_{long_context}")
+    os.makedirs(cache_doc_emb_dir, exist_ok=True)
+    cur_cache_file = os.path.join(cache_doc_emb_dir, f'0.npy')
+
+    if os.path.isfile(cur_cache_file):
+        doc_emb = np.load(cur_cache_file,allow_pickle=True)
+    else:
+        doc_emb = []
+        with torch.inference_mode():
+            doc_emb = model.embed_docs(documents)
+        torch.cuda.empty_cache()
+        
+        # Convert to numpy array and save
+        doc_emb = np.array(doc_emb)
+        np.save(cur_cache_file, doc_emb)
+    print("Shape of doc emb", doc_emb.shape)
+
+    query_emb = []
+    with torch.inference_mode():
+        query_emb = model.embed_queries(queries)
+    query_emb = np.array(query_emb)
+    print("Shape of query emb", query_emb.shape)
+
+    # Find cosine similarity between doc_emb and query_emb
+    scores = cosine_similarity(query_emb, doc_emb)
+    print("Scores shape", scores.shape)
+    scores = scores.tolist()
+
+    if len(kwargs.get('document_postfix', '')) > 0:  # rechunk setting
+        dedup_doc_ids = set(doc_ids)
+        dedup_scores = []  # shape:[len(scores), len(dedup_doc_ids)], save only the best score for each query-doc pair
+        for query_idx in range(len(query_emb)):
+            best_scores = {}  # for each query, save the best score for each doc_id
+            for idx, score in enumerate(scores[query_idx]):
+                doc_id = doc_ids[idx]
+                if doc_id not in best_scores or score > best_scores[doc_id]:
+                    best_scores[doc_id] = score
+            q_doc_scores = []
+            for doc_id in dedup_doc_ids:
+                q_doc_scores.append(best_scores.get(doc_id))
+            dedup_scores.append(q_doc_scores)
+
+        doc_ids, scores = dedup_doc_ids, dedup_scores
+        print("Dedup Scores shape:", len(scores[0]))
+    return get_scores(query_ids=query_ids,doc_ids=doc_ids,scores=scores,excluded_ids=excluded_ids)
+
+
 RETRIEVAL_FUNCS = {
     'sf': retrieval_sf_qwen_e5,
     'qwen': retrieval_sf_qwen_e5,
@@ -538,7 +914,12 @@ RETRIEVAL_FUNCS = {
     'cohere': retrieval_cohere,
     'voyage': retrieval_voyage,
     'openai': retrieval_openai,
-    'google': retrieval_google
+    'google': retrieval_google,
+    'azure_openai': retrieval_azure,
+    'reasonir': retrieval_reasonir,
+    'diver-retriever': retrieval_qwen3_ft_diver,
+    'bge-reasoner': retrieval_qwen3_ft_bge_reasoner,
+    'qwen3-embed': retrieval_qwen3_embedding
 }
 
 def calculate_retrieval_metrics(results, qrels, k_values=[1, 5, 10, 25, 50, 100]):
@@ -549,6 +930,10 @@ def calculate_retrieval_metrics(results, qrels, k_values=[1, 5, 10, 25, 50, 100]
     recall = {}
     precision = {}
     mrr = {"MRR": 0}
+
+    # Ensure all keys are strings for pytrec_eval (both outer and inner dicts)
+    qrels = {str(qid): {str(pid): int(rel) for pid, rel in rels.items()} for qid, rels in qrels.items()}
+    results = {str(qid): {str(pid): float(score) for pid, score in docs.items()} for qid, docs in results.items()}
 
     for k in k_values:
         ndcg[f"NDCG@{k}"] = 0.0
