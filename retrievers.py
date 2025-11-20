@@ -862,7 +862,6 @@ RETRIEVAL_FUNCS = {
     'azure_openai': retrieval_azure,
     'reasonir': retrieval_reasonir,
     'diver-retriever': retrieval_qwen3_ft_diver,
-    'bge-reasoner': retrieval_qwen3_ft_bge_reasoner,
     'qwen3-embed': retrieval_qwen3_embedding
 }
 
