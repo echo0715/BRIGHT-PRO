@@ -785,62 +785,6 @@ def retrieval_qwen3_ft_diver(queries,query_ids,documents,doc_ids,task,model_id,i
         print("Dedup Scores shape:", len(scores[0]))
     return get_scores(query_ids=query_ids,doc_ids=doc_ids,scores=scores,excluded_ids=excluded_ids)
 
-def retrieval_qwen3_ft_bge_reasoner(queries,query_ids,documents,doc_ids,task,model_id,instructions,cache_dir,excluded_ids,long_context,**kwargs):
-    model_cache_folder = kwargs.get('model_cache_folder', None)
-    cache_model_name = kwargs.get('model_name', 'bge-reasoner')
-    batch_size = kwargs.get('encode_batch_size',1)
-    
-    model_path = 'BAAI/bge-reasoner-embed-qwen3-8b-0923'
-    model = Qwen3EmbeddingModel(model_path, max_length=32768, cache_dir=model_cache_folder)
-
-    # Check if documents are already encoded 
-    document_postfix = '_'+kwargs.get('document_postfix', '') if len(kwargs.get('document_postfix', '')) > 0 else ''
-    cache_doc_emb_dir = os.path.join(cache_dir, 'doc_emb'+document_postfix, cache_model_name, task, f"long_{long_context}")
-    os.makedirs(cache_doc_emb_dir, exist_ok=True)
-    cur_cache_file = os.path.join(cache_doc_emb_dir, f'0.npy')
-
-    if os.path.isfile(cur_cache_file):
-        doc_emb = np.load(cur_cache_file,allow_pickle=True)
-    else:
-        doc_emb = []
-        with torch.inference_mode():
-            doc_emb = model.embed_docs(documents)
-        torch.cuda.empty_cache()
-        
-        # Convert to numpy array and save
-        doc_emb = np.array(doc_emb)
-        np.save(cur_cache_file, doc_emb)
-    print("Shape of doc emb", doc_emb.shape)
-
-    query_emb = []
-    with torch.inference_mode():
-        query_emb = model.embed_queries(queries)
-    query_emb = np.array(query_emb)
-    print("Shape of query emb", query_emb.shape)
-
-    # Find cosine similarity between doc_emb and query_emb
-    scores = cosine_similarity(query_emb, doc_emb)
-    print("Scores shape", scores.shape)
-    scores = scores.tolist()
-
-    if len(kwargs.get('document_postfix', '')) > 0:  # rechunk setting
-        dedup_doc_ids = set(doc_ids)
-        dedup_scores = []  # shape:[len(scores), len(dedup_doc_ids)], save only the best score for each query-doc pair
-        for query_idx in range(len(query_emb)):
-            best_scores = {}  # for each query, save the best score for each doc_id
-            for idx, score in enumerate(scores[query_idx]):
-                doc_id = doc_ids[idx]
-                if doc_id not in best_scores or score > best_scores[doc_id]:
-                    best_scores[doc_id] = score
-            q_doc_scores = []
-            for doc_id in dedup_doc_ids:
-                q_doc_scores.append(best_scores.get(doc_id))
-            dedup_scores.append(q_doc_scores)
-
-        doc_ids, scores = dedup_doc_ids, dedup_scores
-        print("Dedup Scores shape:", len(scores[0]))
-    return get_scores(query_ids=query_ids,doc_ids=doc_ids,scores=scores,excluded_ids=excluded_ids)
-
 
 @torch.no_grad()
 def retrieval_qwen3_embedding(queries,query_ids,documents,doc_ids,task,model_id,instructions,cache_dir,excluded_ids,long_context,**kwargs):

@@ -17,12 +17,11 @@ if __name__=='__main__':
         pass
     parser = argparse.ArgumentParser()
     parser.add_argument('--task', type=str, required=True,
-                        choices=['biology','earth_science','economics','pony','psychology','robotics',
-                                 'stackoverflow','sustainable_living','aops','leetcode','theoremqa_theorems',
-                                 'theoremqa_questions'])
+                        choices=['biology','earth_science','economics','psychology','robotics',
+                                 'stackoverflow','sustainable_living'])
     parser.add_argument('--model', type=str, required=True,
-                        choices=['bm25','cohere','e5','google','grit','inst-l','inst-xl',
-                                 'openai','azure_openai','qwen','qwen2','sbert','sf','voyage','bge','reasonir','diver-retriever','bge-reasoner','qwen3-embed'])
+                        choices=['bm25','grit','inst-l','inst-xl',
+                                 'azure_openai','qwen','qwen2','sbert','sf','reasonir','diver-retriever','qwen3-embed'])
     parser.add_argument('--long_context', action='store_true')
     parser.add_argument('--query_max_length', type=int, default=-1)
     parser.add_argument('--doc_max_length', type=int, default=-1)
@@ -46,22 +45,11 @@ if __name__=='__main__':
     if args.input_file is not None:
         with open(args.input_file) as f:
             examples = json.load(f)
-    elif args.reasoning is not None:
-        examples = load_dataset('xlangai/bright', f"{args.reasoning}_reason", cache_dir=args.cache_dir)[args.task]
     else:
         examples = load_dataset('ya-ir/BRIGHT-PRO-WITH-ASPECT', 'examples',cache_dir=args.cache_dir)[args.task]
-        # Load examples from the modified local dataset
-        # examples = load_from_disk(f'bright_pro/examples/{args.task}')
-        # examples = modified_dataset['examples'][args.task]
-        
-    if args.long_context:
-        doc_pairs = load_dataset('xlangai/bright', 'long_documents',cache_dir=args.cache_dir)[args.task]
-    else:
-        # doc_pairs = load_dataset('xlangai/bright', 'documents',cache_dir=args.cache_dir)[args.task]
-        doc_pairs = load_dataset('ya-ir/BRIGHT-PRO-WITH-ASPECT', 'documents',cache_dir=args.cache_dir)[args.task]
-        # Load documents from the modified local dataset
-        # Reuse the already loaded dataset to avoid loading twice
-        # doc_pairs = load_from_disk(f'bright_pro/documents/{args.task}')
+
+    doc_pairs = load_dataset('ya-ir/BRIGHT-PRO-WITH-ASPECT', 'documents',cache_dir=args.cache_dir)[args.task]
+
     doc_ids = []
     documents = []
 
@@ -143,6 +131,6 @@ if __name__=='__main__':
             assert not did in ground_truth[e['id']]
 
     print(args.output_dir)
-    results = calculate_retrieval_metrics(results=scores, qrels=ground_truth)
-    with open(os.path.join(args.output_dir, 'results.json'), 'w') as f:
-        json.dump(results, f, indent=2)
+    # results = calculate_retrieval_metrics(results=scores, qrels=ground_truth)
+    # with open(os.path.join(args.output_dir, 'results.json'), 'w') as f:
+    #     json.dump(results, f, indent=2)
