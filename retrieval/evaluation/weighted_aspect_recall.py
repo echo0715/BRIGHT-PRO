@@ -43,8 +43,8 @@ def build_aspect_maps(task: str, cache_dir: str) -> Tuple[Dict[str, Optional[str
 	- Documents split has fields: id (string), content (string), aspect (string)
 	- Aspects split has fields: id (string), weight (float)
 	"""
-	documents = load_dataset('ya-ir/BRIGHT-PRO-WITH-ASPECT', 'documents', cache_dir=cache_dir)[task]
-	aspects = load_dataset('ya-ir/BRIGHT-PRO-WITH-ASPECT', 'aspects', cache_dir=cache_dir)[task]
+	documents = load_dataset('ya-ir/BRIGHT-PRO', 'documents', cache_dir=cache_dir)[task]
+	aspects = load_dataset('ya-ir/BRIGHT-PRO', 'aspects', cache_dir=cache_dir)[task]
 
 	doc_id_to_aspect_id: Dict[str, Optional[str]] = {}
 	for doc in documents:
@@ -236,7 +236,7 @@ def main():
 				# Skip unknown task folders
 				continue
 			if task not in cache_per_task:
-				examples = load_dataset('ya-ir/BRIGHT-PRO-WITH-ASPECT', 'examples', cache_dir=args.cache_dir)[task]
+				examples = load_dataset('ya-ir/BRIGHT-PRO', 'examples', cache_dir=args.cache_dir)[task]
 				doc_id_to_aspect_id, aspect_id_to_weight = build_aspect_maps(task, args.cache_dir)
 				cache_per_task[task] = (examples, doc_id_to_aspect_id, aspect_id_to_weight)
 			examples, doc_id_to_aspect_id, aspect_id_to_weight = cache_per_task[task]
@@ -246,7 +246,7 @@ def main():
 			results.append(res)
 	else:
 		# Single task mode
-		examples = load_dataset('ya-ir/BRIGHT-PRO-WITH-ASPECT', 'examples', cache_dir=args.cache_dir)[args.task]
+		examples = load_dataset('ya-ir/BRIGHT-PRO', 'examples', cache_dir=args.cache_dir)[args.task]
 		doc_id_to_aspect_id, aspect_id_to_weight = build_aspect_maps(args.task, args.cache_dir)
 		for sf in files:
 			res = evaluate_file(sf, examples, doc_id_to_aspect_id, aspect_id_to_weight, k=args.k, long_context=args.long_context)

@@ -46,9 +46,9 @@ if __name__=='__main__':
         with open(args.input_file) as f:
             examples = json.load(f)
     else:
-        examples = load_dataset('ya-ir/BRIGHT-PRO-WITH-ASPECT', 'examples',cache_dir=args.cache_dir)[args.task]
+        examples = load_dataset('ya-ir/BRIGHT-PRO', 'examples',cache_dir=args.cache_dir)[args.task]
 
-    doc_pairs = load_dataset('ya-ir/BRIGHT-PRO-WITH-ASPECT', 'documents',cache_dir=args.cache_dir)[args.task]
+    doc_pairs = load_dataset('ya-ir/BRIGHT-PRO', 'documents',cache_dir=args.cache_dir)[args.task]
 
     doc_ids = []
     documents = []
