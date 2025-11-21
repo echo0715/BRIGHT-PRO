@@ -1,4 +1,4 @@
-## Reasoning-Intensive Retrieval (BRIGHT)
+## BRIGTH-PRO
 
 This repository contains code and data pipelines for the **Rethinking Evaluation of Reasoning-Intensive Retrieval:Toward Real-World Deep Research Workflows** paper. It focuses on retrieval settings where models must reason about **diverse, aspect-rich documents**, going beyond shallow lexical or embedding similarity.
 
