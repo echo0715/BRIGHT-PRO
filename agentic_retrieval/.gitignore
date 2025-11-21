@@ -1,0 +1,7 @@
+.env
+.venv
+.vscode
+cache/
+runs/
+fixed_turn_runs/
+fixed_turn_runs_old_copy/

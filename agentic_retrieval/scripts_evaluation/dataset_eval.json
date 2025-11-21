@@ -1,0 +1,95 @@
+{
+  "results": [
+    {
+      "task": "biology",
+      "avg_document_length_chars": 550.2921602466364,
+      "avg_document_length_gpt2_tokens": 130.9844009181844,
+      "num_documents": 59683,
+      "avg_positive_docs_per_query": 9.74757281553398,
+      "num_queries": 103,
+      "avg_unique_aspects_per_query": 3.8058252427184467,
+      "avg_aspect_string_length_chars": 152.30357142857142,
+      "avg_aspect_string_length_gpt2_tokens": 29.630102040816325,
+      "num_aspects": 392,
+      "aspect_text_field_used": "content"
+    },
+    {
+      "task": "earth_science",
+      "avg_document_length_chars": 442.39313193030097,
+      "avg_document_length_gpt2_tokens": 154.53051757023243,
+      "num_documents": 123732,
+      "avg_positive_docs_per_query": 9.043103448275861,
+      "num_queries": 116,
+      "avg_unique_aspects_per_query": 3.7327586206896552,
+      "avg_aspect_string_length_chars": 155.18706697459584,
+      "avg_aspect_string_length_gpt2_tokens": 30.990762124711317,
+      "num_aspects": 433,
+      "aspect_text_field_used": "content"
+    },
+    {
+      "task": "economics",
+      "avg_document_length_chars": 613.0918891072484,
+      "avg_document_length_gpt2_tokens": 164.7169487321364,
+      "num_documents": 52411,
+      "avg_positive_docs_per_query": 10.077669902912621,
+      "num_queries": 103,
+      "avg_unique_aspects_per_query": 3.621359223300971,
+      "avg_aspect_string_length_chars": 154.98659517426273,
+      "avg_aspect_string_length_gpt2_tokens": 28.766756032171582,
+      "num_aspects": 373,
+      "aspect_text_field_used": "content"
+    },
+    {
+      "task": "psychology",
+      "avg_document_length_chars": 590.124524247446,
+      "avg_document_length_gpt2_tokens": 159.32254657367108,
+      "num_documents": 54913,
+      "avg_positive_docs_per_query": 9.524752475247524,
+      "num_queries": 101,
+      "avg_unique_aspects_per_query": 3.4653465346534653,
+      "avg_aspect_string_length_chars": 153.26,
+      "avg_aspect_string_length_gpt2_tokens": 28.431428571428572,
+      "num_aspects": 350,
+      "aspect_text_field_used": "content"
+    },
+    {
+      "task": "robotics",
+      "avg_document_length_chars": 443.65772902701605,
+      "avg_document_length_gpt2_tokens": 155.87740433444273,
+      "num_documents": 63999,
+      "avg_positive_docs_per_query": 7.237623762376238,
+      "num_queries": 101,
+      "avg_unique_aspects_per_query": 3.376237623762376,
+      "avg_aspect_string_length_chars": 147.56891495601172,
+      "avg_aspect_string_length_gpt2_tokens": 31.60410557184751,
+      "num_aspects": 341,
+      "aspect_text_field_used": "content"
+    },
+    {
+      "task": "stackoverflow",
+      "avg_document_length_chars": 1777.9054914881933,
+      "avg_document_length_gpt2_tokens": 713.8425407285374,
+      "num_documents": 109260,
+      "avg_positive_docs_per_query": 5.358974358974359,
+      "num_queries": 117,
+      "avg_unique_aspects_per_query": 3.0854700854700856,
+      "avg_aspect_string_length_chars": 140.42659279778394,
+      "avg_aspect_string_length_gpt2_tokens": 30.058171745152354,
+      "num_aspects": 361,
+      "aspect_text_field_used": "content"
+    },
+    {
+      "task": "sustainable_living",
+      "avg_document_length_chars": 545.7674656994164,
+      "avg_document_length_gpt2_tokens": 148.98128055511748,
+      "num_documents": 63410,
+      "avg_positive_docs_per_query": 12.38888888888889,
+      "num_queries": 108,
+      "avg_unique_aspects_per_query": 3.611111111111111,
+      "avg_aspect_string_length_chars": 149.3897435897436,
+      "avg_aspect_string_length_gpt2_tokens": 28.476923076923075,
+      "num_aspects": 390,
+      "aspect_text_field_used": "content"
+    }
+  ]
+}
