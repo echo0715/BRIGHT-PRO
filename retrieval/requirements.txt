@@ -14,3 +14,4 @@ gensim
 InstructorEmbedding
 sentence-transformers
 vllm
+datasets
