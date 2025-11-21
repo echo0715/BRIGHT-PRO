@@ -33,7 +33,8 @@ def dedupe_file(path: Path) -> bool:
     return changed
 
 def main():
-    root = Path('/gpfs/radev/home/jw3278/project/BrowseComp-Plus-changed/fixed_turn_runs')
+    script_dir = Path(__file__).resolve().parent
+    root = script_dir / 'fixed_turn_runs'
     if not root.exists():
         print(f'Not found: {root}')
         return

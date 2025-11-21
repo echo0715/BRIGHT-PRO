@@ -13,7 +13,6 @@ uv sync
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install --upgrade pip
 pip install .
 ```
 
@@ -59,7 +58,7 @@ stackoverflow, sustainable_living
 Replace `--searcher-type` with one of:
 
 ```text
-bm25, reasonir, diver, bge, inst-l, inst-xl, qwen, grit, custom
+bm25, reasonir, diver, bge, inst-l, inst-xl, qwen, grit
 ```
 
 Models and document embeddings are cached under `cache/` and `cache/doc_emb/...` as needed; you can override with `--model-cache-dir` or `--cache-dir`.
@@ -68,7 +67,6 @@ Models and document embeddings are cached under `cache/` and `cache/doc_emb/...`
 Generate full answers based on stored fixed turn retrieval runs using Azure OpenAI with `search_agent/answers_from_runs.py`:
 
 ```bash
-cd /gpfs/radev/home/jw3278/project/BrowseComp-Plus-changed
 python -m search_agent.answers_from_runs \
   --searcher bm25 \
   --task biology \
@@ -86,7 +84,6 @@ Alpha-nDCG is the main metric used in the paper; it evaluates aspect-aware, dive
 python -m scripts_evaluation.alpha_ndcg \
   --fixed_dir fixed_turn_runs \
   --alpha 0.5 \
-  --cache_dir /gpfs/radev/home/jw3278/project/BRIGHT/cache
 ```
 
 Key flags:

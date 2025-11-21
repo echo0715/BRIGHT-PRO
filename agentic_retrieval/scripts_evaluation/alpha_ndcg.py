@@ -290,9 +290,9 @@ def aggregate_metrics(results: List[Dict[str, Any]]) -> Dict[str, Any]:
 
 def main():
     parser = argparse.ArgumentParser(description='Evaluate weighted alpha-nDCG across rounds in fixed_turn_runs')
-    parser.add_argument('--fixed_dir', type=str, default='/gpfs/radev/home/jw3278/project/BrowseComp-Plus-changed/fixed_turn_runs')
+    parser.add_argument('--fixed_dir', type=str, default='fixed_turn_runs')
     parser.add_argument('--alpha', type=float, default=0.5)
-    parser.add_argument('--cache_dir', type=str, default='/gpfs/radev/home/jw3278/project/BRIGHT/cache')
+    parser.add_argument('--cache_dir', type=str, default='../retrieval/cache')
     parser.add_argument('--benchmark', type=str, default=None, help='optional benchmark filter (e.g., grit)')
     parser.add_argument('--long_context', action='store_true', help='use gold_ids_long')
     parser.add_argument('--save_json', type=str, default=None, help='path to write all results and aggregates as JSON')

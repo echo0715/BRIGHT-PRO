@@ -18,8 +18,6 @@ pip install -r requirements.txt
     export AZURE_OPENAI_API_KEY="your-azure-openai-key"
     ```
 
-  - Other API-backed models (e.g., Cohere, Vertex AI, etc.) rely on their standard Python client environment variables.
-
 ## Running retrieval baselines
 
 The main entry point for running retrieval over BRIGHT-PRO is `run.py`. It loads the datasets via HuggingFace `datasets`, computes retrieval scores, and writes them to `outputs/{task}_{model}/score.json`.
