@@ -22,7 +22,7 @@ pip install -r requirements.txt
 
 ## Running retrieval baselines
 
-The main entry point for running retrieval over BRIGHT-PRO-WITH-ASPECT is `run.py`. It loads the datasets via HuggingFace `datasets`, computes retrieval scores, and writes them to `outputs/{task}_{model}/score.json`.
+The main entry point for running retrieval over BRIGHT-PRO is `run.py`. It loads the datasets via HuggingFace `datasets`, computes retrieval scores, and writes them to `outputs/{task}_{model}/score.json`.
 
 - **Basic usage** (from `retrieval/`):
 
