@@ -4,7 +4,7 @@ Code for running and evaluating retrieval models on the BRIGHT dataset with aspe
 
 ### Overview
 
-BRIGHT is a multi-domain retrieval benchmark built on the Hugging Face dataset `ya-ir/BRIGHT-PRO-WITH-ASPECT`.  
+BRIGHT-PRO is a multi-domain retrieval benchmark built on the Hugging Face dataset `ya-ir/BRIGHT-PRO-WITH-ASPECT`.  
 Each query comes with:
 
 - **Gold documents** (short and long-context variants)
@@ -85,7 +85,7 @@ All scripts load data via the Hugging Face Datasets hub:
 
 - Dataset: `ya-ir/BRIGHT-PRO-WITH-ASPECT`
 - Splits:
-  - `examples` – queries, gold document ids (short and long variants), and exclusion lists
+  - `examples` – queries, gold document ids, and exclusion lists
   - `documents` – document ids, contents, and associated aspect ids
   - `aspects` – aspect ids and their weights
 
@@ -100,17 +100,12 @@ The main entrypoint is `run.py`. It:
 3. Caches embeddings/scores where appropriate
 4. Writes per-query retrieval scores to `score.json` under the specified `--output_dir`
 
-Basic example (dense retriever with long-context instructions):
+Basic example:
 
 ```bash
 python run.py \
   --task biology \
   --model qwen2 \
-  --long_context \
-  --encode_batch_size 8 \
-  --output_dir outputs \
-  --cache_dir cache \
-  --config_dir configs \
   --model_cache_folder /path/to/hf_cache
 ```
 
@@ -118,17 +113,11 @@ Key arguments:
 
 - **`--task`**: one of `biology`, `earth_science`, `economics`, `psychology`, `robotics`, `stackoverflow`, `sustainable_living`
 - **`--model`**: one of the retrievers listed above
-- **`--long_context`**: use long-context instructions and long gold labels (`gold_ids_long`)
-- **`--query_max_length`, `--doc_max_length`**: optional token length caps for encoders
-- **`--encode_batch_size`**: batch size for embedding/encoding
-- **`--checkpoint`**: optional path/checkpoint for local models
-- **`--key`**: API key for services that are passed via arguments
 - **`--model_cache_folder`**: local Hugging Face cache directory for model weights
-- **`--input_file`**: use a custom JSON file of examples instead of loading from the dataset
 
 Output files are written to:
 
-- `outputs/<task>_<model>_long_<True|False>/score.json`
+- `outputs/<task>_<model>/score.json`
 
 The `score.json` file maps each query id to a dict of `{doc_id: score, ...}` or to a ranked list of document ids, depending on the retriever implementation.
 
@@ -145,10 +134,7 @@ Example (single task):
 ```bash
 python evaluation/weighted_aspect_recall.py \
   --task biology \
-  --k 25 \
-  --output_dir outputs \
-  --cache_dir cache \
-  --long_context
+  --all
 ```
 
 Example (aggregate across all tasks / runs in `outputs/`):
@@ -164,7 +150,6 @@ python evaluation/weighted_aspect_recall.py \
 
 Useful flags:
 
-- **`--score_file`**: explicit path to a `score.json` file (otherwise inferred from `--task` and `--output_dir`)
 - **`--save_json`**: path to write a JSON summary of results
 - **`--save_excel`**: path to write an Excel matrix (retrievers × tasks); requires `pandas` and `openpyxl`
 
@@ -213,23 +198,5 @@ High-level layout:
 - `evaluation/` – evaluation scripts for Weighted Aspect Recall@K and weighted alpha-nDCG@K
 - `cache/` – dataset and embedding caches (created automatically)
 - `outputs/` – run directories containing `score.json` (and optional `results.json`)
-
-### Citation
-
-If you use this code or the BRIGHT dataset, please cite the corresponding paper.  
-Replace the placeholder below with the official citation:
-
-```text
-@inproceedings{bright202X,
-  title   = {BRIGHT: <Full Paper Title>},
-  author  = {<Author List>},
-  booktitle = {<Conference / Journal>},
-  year    = {202X}
-}
-```
-
-### License
-
-Add your license information here (e.g., MIT, Apache-2.0), or link to a `LICENSE` file if present.
 
 
