@@ -3,7 +3,7 @@
 This repository contains code and data pipelines for the **Rethinking Evaluation of Reasoning-Intensive Retrieval:Toward Real-World Deep Research Workflows** paper. It focuses on retrieval settings where models must reason about **diverse, aspect-rich documents**, going beyond shallow lexical or embedding similarity.
 
 - **Benchmarks & data**:
-  - Construct `ya-ir/BRIGHT-PRO` dataset, with tasks such as biology, earth_science, economics, psychology, robotics, stackoverflow, and sustainable_living.
+  - Construct `BRIGHT-PRO` dataset, with tasks such as biology, earth_science, economics, psychology, robotics, stackoverflow, and sustainable_living.
   - Documents are annotated with aspects and aspect weights, enabling **aspect-aware** related metrics.
 
 - **Code structure**:
