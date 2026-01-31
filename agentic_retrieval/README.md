@@ -88,6 +88,5 @@ python -m scripts_evaluation.alpha_ndcg \
 
 Key flags:
 - **`--benchmark`**: optional filter for the generator/benchmark subfolder (e.g., `--benchmark bge`).
-- **`--long_context`**: use `gold_ids_long` instead of `gold_ids`.
 - **`--save_json`** / **`--excel_out`**: optionally save detailed results and model×task matrices.
 
