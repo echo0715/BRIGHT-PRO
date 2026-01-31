@@ -27,7 +27,7 @@ export AZURE_ENDPOINT="https://your-azure-endpoint"
 
 Retrieval agents live under `search_agent/` and write run files to `runs/gpt-5-mini/...`. BRIGHT-PRO data is loaded via `datasets` and cached under `cache/` by default.
 
-- **Run adaptive round the Azure OpenAI search agent :
+- **Run adaptive round the Azure OpenAI search agent** :
 
 ```bash
 python -m search_agent.openai_new \
